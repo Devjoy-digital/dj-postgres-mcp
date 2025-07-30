@@ -1,6 +1,6 @@
 {
-  "name": "@devjoy-digital/postgres-server-mcp",
-  "version": "1.1.5",
+  "name": "@devjoy-digital/dj-postgres-mcp",
+  "version": "1.0.0",
   "description": "A Model Context Protocol (MCP) server for PostgreSQL database operations with flexible configuration management",
   "private": false,
   "publishConfig": {
@@ -8,7 +8,7 @@
   },
   "type": "module",
   "bin": {
-    "postgres-server-mcp": "build/index.js"
+    "dj-postgres-mcp": "build/index.js"
   },
   "files": [
     "build",
@@ -18,11 +18,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/devjoy-digital/postgres-mcp-server.git"
+    "url": "git+https://github.com/devjoy-digital/dj-postgres-mcp.git"
   },
-  "homepage": "https://github.com/devjoy-digital/postgres-mcp-server#readme",
+  "homepage": "https://github.com/devjoy-digital/dj-postgres-mcp#readme",
   "bugs": {
-    "url": "https://github.com/devjoy-digital/postgres-mcp-server/issues"
+    "url": "https://github.com/devjoy-digital/dj-postgres-mcp/issues"
   },
   "author": "devjoy.digital",
   "license": "MIT",

@@ -13,7 +13,7 @@ A Model Context Protocol (MCP) server for PostgreSQL database operations with fl
 ## Installation
 
 ```bash
-npm install -g @devjoy-digital/postgres-server-mcp
+npm install -g @devjoy-digital/dj-postgres-mcp
 ```
 
 ## Configuration

@@ -133,8 +133,8 @@ function initializeServer(): void {
   log('initializeServer: Starting server initialization');
   server = new Server(
     {
-      name: "postgres-server-mcp",
-      version: "1.1.5",
+      name: "dj-postgres-mcp",
+      version: "1.0.0",
     },
     {
       capabilities: {
@@ -546,8 +546,8 @@ function initializeServer(): void {
  * Start the server
  */
 async function main() {
-  log('main: Starting PostgreSQL MCP Server v1.1.5');
-  log('main: Server details', { name: 'postgres-server-mcp', version: '1.1.5', nodeVersion: process.version });
+  log('main: Starting PostgreSQL MCP Server v1.0.0');
+  log('main: Server details', { name: 'dj-postgres-mcp', version: '1.0.0', nodeVersion: process.version });
   try {
     // Initialize configuration handler with default config immediately
     log('main: Creating config handler');
