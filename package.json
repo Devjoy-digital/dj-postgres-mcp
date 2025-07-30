@@ -1,0 +1,65 @@
+{
+  "name": "@devjoy-digital/postgres-server-mcp",
+  "version": "1.1.5",
+  "description": "A Model Context Protocol (MCP) server for PostgreSQL database operations with flexible configuration management",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "bin": {
+    "postgres-server-mcp": "build/index.js"
+  },
+  "files": [
+    "build",
+    "template-config.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devjoy-digital/postgres-mcp-server.git"
+  },
+  "homepage": "https://github.com/devjoy-digital/postgres-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/devjoy-digital/postgres-mcp-server/issues"
+  },
+  "author": "devjoy.digital",
+  "license": "MIT",
+  "mcpConfig": {
+    "schema": "template-config.json"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "postgresql",
+    "postgres",
+    "database",
+    "sql",
+    "ai",
+    "claude",
+    "chatgpt",
+    "gemini",
+    "configuration",
+    "server"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "dev": "tsc --watch",
+    "start": "node build/index.js",
+    "prepare": "npm run build",
+    "clean": "rm -rf build",
+    "inspector": "npx @modelcontextprotocol/inspector build/index.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "dj-config-mcp": "file:../mcp-config",
+    "@modelcontextprotocol/sdk": "0.6.0",
+    "@types/pg": "^8.15.4",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "env": {
+    "doc": "The application environment.",
+    "format": ["production", "development", "test"],
+    "default": "development",
+    "env": "NODE_ENV"
+  },
+  "postgres": {
+    "properties": {
+      "host": {
+        "doc": "Database host (e.g., localhost, Azure hostname, AWS RDS endpoint)",
+        "format": "String",
+        "default": "localhost",
+        "env": "POSTGRES_HOST",
+        "sensitive": false
+      },
+      "port": {
+        "doc": "Database port",
+        "format": "port",
+        "default": 5432,
+        "env": "POSTGRES_PORT",
+        "sensitive": false
+      },
+      "database": {
+        "doc": "Database name",
+        "format": "String",
+        "default": "postgres",
+        "env": "POSTGRES_DATABASE",
+        "sensitive": false
+      },
+      "user": {
+        "doc": "Database username",
+        "format": "String",
+        "default": "postgres",
+        "env": "POSTGRES_USER",
+        "sensitive": false
+      },
+      "password": {
+        "doc": "Database password",
+        "format": "String",
+        "default": "",
+        "env": "POSTGRES_PASSWORD",
+        "sensitive": true
+      },
+      "ssl": {
+        "doc": "Enable SSL connection (recommended for cloud databases)",
+        "format": "Boolean",
+        "default": true,
+        "env": "POSTGRES_SSL",
+        "sensitive": false
+      },
+      "connectionTimeout": {
+        "doc": "Connection timeout in milliseconds",
+        "format": "Number",
+        "default": 30000,
+        "env": "POSTGRES_CONNECTION_TIMEOUT",
+        "sensitive": false
+      },
+      "queryTimeout": {
+        "doc": "Query timeout in milliseconds",
+        "format": "Number",
+        "default": 60000,
+        "env": "POSTGRES_QUERY_TIMEOUT",
+        "sensitive": false
+      },
+      "maxConnections": {
+        "doc": "Maximum number of concurrent connections",
+        "format": "Number",
+        "default": 10,
+        "env": "POSTGRES_MAX_CONNECTIONS",
+        "sensitive": false
+      },
+      "autoRetry": {
+        "doc": "Whether to automatically retry failed connections",
+        "format": "Boolean",
+        "default": true,
+        "env": "POSTGRES_AUTO_RETRY",
+        "sensitive": false
+      }
+    }
+  },
+  "clients": {
+    "properties": {
+      "selected": {
+        "doc": "Selected client applications for configuration sharing.",
+        "format": "Array",
+        "default": [],
+        "env": "MCP_CLIENTS",
+        "sensitive": false
+      }
+    }
+  }
+}
