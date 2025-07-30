@@ -1,6 +1,6 @@
 {
   "name": "@devjoy-digital/dj-postgres-mcp",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "A Model Context Protocol (MCP) server for PostgreSQL database operations with flexible configuration management",
   "private": false,
   "publishConfig": {

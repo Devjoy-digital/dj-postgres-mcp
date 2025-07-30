@@ -99,8 +99,8 @@ function isValidTableInfoArgs(args) {
 function initializeServer() {
     log('initializeServer: Starting server initialization');
     server = new Server({
-        name: "postgres-server-mcp",
-        version: "1.1.5",
+        name: "dj-postgres-mcp",
+        version: "0.9.0",
     }, {
         capabilities: {
             resources: {},
@@ -305,7 +305,7 @@ function initializeServer() {
                 throw new McpError(ErrorCode.InvalidRequest, 'Server not fully initialized');
             }
             // Check if this is a configuration tool
-            const configTools = ['config', 'config_get', 'get_supported_clients', 'test_connection'];
+            const configTools = ['config', 'config_get', 'get_supported_clients', 'test_connection', 'set_connection', 'get_connection', 'list_supported_clients'];
             if (configTools.includes(name)) {
                 // If config tools are hidden, reject the call
                 if (configHandler.getTools().length === 0) {
@@ -315,7 +315,7 @@ function initializeServer() {
             }
             // For database tools, check if configured before attempting
             if (!configHandler.isConfigured()) {
-                throw new McpError(ErrorCode.InvalidRequest, 'Database not configured. Please use the "config" tool first to set up your PostgreSQL connection.');
+                throw new McpError(ErrorCode.InvalidRequest, 'Database not configured. Please use the "set_connection" tool first to set up your PostgreSQL connection.');
             }
             // Handle database operation tools
             switch (name) {
@@ -473,8 +473,8 @@ function initializeServer() {
  * Start the server
  */
 async function main() {
-    log('main: Starting PostgreSQL MCP Server v1.1.5');
-    log('main: Server details', { name: 'postgres-server-mcp', version: '1.1.5', nodeVersion: process.version });
+    log('main: Starting PostgreSQL MCP Server v0.9.0');
+    log('main: Server details', { name: 'dj-postgres-mcp', version: '0.9.0', nodeVersion: process.version });
     try {
         // Initialize configuration handler with default config immediately
         log('main: Creating config handler');

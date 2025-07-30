@@ -134,7 +134,7 @@ function initializeServer(): void {
   server = new Server(
     {
       name: "dj-postgres-mcp",
-      version: "1.0.0",
+      version: "0.9.0",
     },
     {
       capabilities: {
@@ -361,7 +361,7 @@ function initializeServer(): void {
     }
     
     // Check if this is a configuration tool
-    const configTools = ['config', 'config_get', 'get_supported_clients', 'test_connection'];
+    const configTools = ['config', 'config_get', 'get_supported_clients', 'test_connection', 'set_connection', 'get_connection', 'list_supported_clients'];
     if (configTools.includes(name)) {
       // If config tools are hidden, reject the call
       if (configHandler.getTools().length === 0) {
@@ -374,7 +374,7 @@ function initializeServer(): void {
     if (!configHandler.isConfigured()) {
       throw new McpError(
         ErrorCode.InvalidRequest, 
-        'Database not configured. Please use the "config" tool first to set up your PostgreSQL connection.'
+        'Database not configured. Please use the "set_connection" tool first to set up your PostgreSQL connection.'
       );
     }
     
@@ -546,8 +546,8 @@ function initializeServer(): void {
  * Start the server
  */
 async function main() {
-  log('main: Starting PostgreSQL MCP Server v1.0.0');
-  log('main: Server details', { name: 'dj-postgres-mcp', version: '1.0.0', nodeVersion: process.version });
+  log('main: Starting PostgreSQL MCP Server v0.9.0');
+  log('main: Server details', { name: 'dj-postgres-mcp', version: '0.9.0', nodeVersion: process.version });
   try {
     // Initialize configuration handler with default config immediately
     log('main: Creating config handler');

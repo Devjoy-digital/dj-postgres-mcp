@@ -150,15 +150,18 @@ export class McpConfigHandler {
     switch (toolName) {
       case 'config_connection':
       case 'config':
+      case 'set_connection':
         return await this.handleConfig(args);
       
       case 'config_get':
+      case 'get_connection':
         return await this.handleConfigGet();
       
       case 'get_connection_info':
         return await this.handleGetConnectionInfo();
       
       case 'get_supported_clients':
+      case 'list_supported_clients':
         return await this.handleGetSupportedClients();
       
       case 'test_connection':
@@ -179,8 +182,8 @@ export class McpConfigHandler {
 
     return [
       {
-        name: 'config',
-        description: 'Configure database connection settings and manage configuration',
+        name: 'set_connection',
+        description: 'Set database connection settings (use global: true to persist as default)',
         inputSchema: {
           type: 'object',
           properties: {
@@ -230,7 +233,7 @@ export class McpConfigHandler {
             },
             global: {
               type: 'boolean',
-              description: 'Configure globally (default: false)',
+              description: 'Save as default connection for future sessions (default: false)',
               default: false
             }
           },
@@ -238,16 +241,16 @@ export class McpConfigHandler {
         }
       },
       {
-        name: 'config_get',
-        description: 'Get current database connection configuration (local and global)',
+        name: 'get_connection',
+        description: 'Get current database connection configuration',
         inputSchema: {
           type: 'object',
           properties: {}
         }
       },
       {
-        name: 'get_supported_clients',
-        description: 'Get list of supported client applications for configuration distribution',
+        name: 'list_supported_clients',
+        description: 'List supported client applications for configuration distribution',
         inputSchema: {
           type: 'object',
           properties: {}
