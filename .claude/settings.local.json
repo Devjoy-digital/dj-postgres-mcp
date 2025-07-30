@@ -4,7 +4,18 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm run build:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm init:*)",
+      "Bash(git checkout:*)",
+      "Bash(rm:*)",
+      "Bash(npm install)",
+      "Bash(npm test)",
+      "Bash(dir:*)",
+      "Bash(npm run inspector:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(npm search:*)"
     ],
     "deny": []
   }

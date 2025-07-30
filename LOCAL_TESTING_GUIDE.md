@@ -1,98 +1,200 @@
-# Local Testing Guide for PostgreSQL MCP Server
+# Local Testing Guide for dj-postgres-mcp
 
-## Overview
-Your PostgreSQL MCP Server has been successfully configured with:
-- ✅ Configuration tools hidden from clients
-- ✅ Interactive configuration mode removed
-- ✅ Only database operation tools exposed to clients
+This guide will help you test the dj-postgres-mcp package locally before publishing to npm.
 
-## Testing Methods
+## Prerequisites
 
-### Method 1: Direct Execution (Simplest)
+1. Ensure you have Node.js installed (v18 or higher)
+2. PostgreSQL database available for testing
+3. The `dj-config-mcp` dependency built and available at `../dj-config-mcp`
 
-Run the server directly from this directory:
+## Step 1: Build the dj-config-mcp dependency
+
+Since this package depends on a local package, you need to ensure it's available:
 
 ```bash
-node build/index.js
+cd ../dj-config-mcp
+npm install
+# No build step needed as it's a plain JavaScript package
 ```
 
-The server will start and listen on stdio. Your MCP client can connect to this process.
+## Step 2: Build dj-postgres-mcp
 
-### Method 2: Using npm link (Recommended for realistic testing)
+```bash
+# In the dj-postgres-mcp directory
+npm install
+npm run build
+```
 
-The package has already been linked globally. Now you can use it in any project:
+## Step 3: Configure using Web UI
 
-1. **In another project directory**, run:
-   ```bash
-   npm link @devjoy-digital/postgres-server-mcp
-   ```
+The dj-config-mcp package provides a web UI for configuration:
 
-2. **Configure your MCP client** to use the server. For example, in your MCP client configuration:
-   ```json
-   {
-     "mcpServers": {
-       "postgres": {
-         "command": "npx",
-         "args": ["@devjoy-digital/postgres-server-mcp"]
-       }
-     }
-   }
-   ```
+```bash
+# In the dj-config-mcp directory
+cd ../dj-config-mcp
+npx mcp-config config-ui
 
-### Method 3: Test with Claude Desktop (if using)
+# Or with a custom port
+npx mcp-config config-ui --port 3456
+```
 
-If you're using Claude Desktop, add this to your `claude_desktop_config.json`:
+This will open a web interface at http://localhost:3456 where you can:
+- Configure PostgreSQL connection settings
+- Manage sensitive and non-sensitive configuration values
+- Export/import configurations
+- See which values come from environment variables vs config files
+
+## Step 4: Test using MCP Inspector
+
+The MCP Inspector is the best way to test your MCP server interactively:
+
+```bash
+npx @modelcontextprotocol/inspector build/index.js
+```
+
+This will open a web interface where you can:
+- See all available tools
+- Test tool invocations
+- View server logs
+- Debug configuration issues
+
+## Step 5: Create a local test project
+
+```bash
+# Create a test directory
+mkdir test-local
+cd test-local
+
+# Create package.json
+cat > package.json << EOF
+{
+  "name": "test-dj-postgres-mcp",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@devjoy-digital/dj-postgres-mcp": "file:.."
+  }
+}
+EOF
+
+# Install dependencies
+npm install
+```
+
+## Step 6: Create a test configuration
+
+Create a `postgres-config.json` file:
+
+```json
+{
+  "host": "localhost",
+  "port": 5432,
+  "database": "test_db",
+  "username": "your_username",
+  "password": "your_password",
+  "defaultSchema": "public"
+}
+```
+
+## Step 7: Test with npm link (Alternative approach)
+
+If you want to test as if the package was installed globally:
+
+```bash
+# In dj-postgres-mcp directory
+npm link
+
+# In any test project
+npm link @devjoy-digital/dj-postgres-mcp
+```
+
+## Step 8: Test the CLI directly
+
+```bash
+# Run the server
+node build/index.js
+
+# With a config file
+CONFIG_PATH=./postgres-config.json node build/index.js
+```
+
+## Step 9: Integration with AI Assistants
+
+### Claude Desktop
+
+Add to your Claude Desktop config:
 
 ```json
 {
   "mcpServers": {
-    "postgres": {
+    "postgres-local": {
       "command": "node",
-      "args": ["D:/Workspace/Repos/jamaynor/mcps/postgres-mcp-server/build/index.js"]
+      "args": ["D:/path/to/dj-postgres-mcp/build/index.js"],
+      "env": {
+        "CONFIG_PATH": "D:/path/to/postgres-config.json"
+      }
     }
   }
 }
 ```
 
-## What to Test
+## Common Issues and Solutions
 
-### 1. Verify Hidden Configuration Tools
-- Check that only these 3 tools are visible to clients:
-  - `execute_query`
-  - `describe_table` 
-  - `list_tables`
+### Issue: Cannot find module 'dj-config-mcp'
 
-### 2. Verify Configuration Tools Are Hidden
-- Confirm these tools are NOT visible:
-  - `config_connection`
-  - `get_connection_info`
-  - `update_configuration`
-  - `test_connection`
-  - `config_connection_interactive` (removed completely)
-
-### 3. Test Database Operations
-- Try executing SQL queries
-- Test table descriptions
-- List database tables
-
-## Configuration
-
-The server still uses the mcp-config system internally for database connections. You can configure it using:
-
-- Environment variables (POSTGRES_HOST, POSTGRES_USER, etc.)
-- Configuration files in the `config/` directory
-- The `@devjoy-digital/mcp-config` CLI tool directly
-
-## Troubleshooting
-
-If you need to unlink the package later:
+**Solution**: Ensure the dj-config-mcp package exists at `../dj-config-mcp` and has been installed:
 ```bash
-npm unlink @devjoy-digital/postgres-server-mcp
+cd ../dj-config-mcp
+npm install
 ```
 
-To rebuild after making changes:
+### Issue: PostgreSQL connection errors
+
+**Solution**: 
+1. Verify PostgreSQL is running
+2. Check your connection credentials in the config file
+3. Ensure the database exists and is accessible
+
+### Issue: Permission denied when running the built script
+
+**Solution**: The build process should set execute permissions, but if needed:
 ```bash
-npm run build
+chmod +x build/index.js
 ```
 
-The changes will be immediately available to any linked projects without needing to re-link.
+## Pre-publish Checklist
+
+Before publishing to npm:
+
+1. ✅ All tests pass
+2. ✅ MCP Inspector shows all tools working correctly
+3. ✅ Configuration management works properly
+4. ✅ PostgreSQL operations execute successfully
+5. ✅ Error handling works as expected
+6. ✅ README.md is up to date
+7. ✅ Version number is updated in package.json
+8. ✅ CHANGELOG.md is updated
+
+## Publishing to npm
+
+Once all tests pass:
+
+```bash
+# Login to npm (if not already)
+npm login
+
+# Publish
+npm publish --access public
+```
+
+## Post-publish Testing
+
+After publishing, test the published package:
+
+```bash
+# In a new directory
+npm init -y
+npm install @devjoy-digital/dj-postgres-mcp
+npx @modelcontextprotocol/inspector node_modules/@devjoy-digital/dj-postgres-mcp/build/index.js
+```

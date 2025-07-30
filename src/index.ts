@@ -22,6 +22,7 @@ import { Client } from "pg";
 import { McpConfigHandler } from './handlers/McpConfigHandler.js';
 import { PostgresConfig } from './models/Config.js';
 import { log, logError } from './utils/logger.js';
+import { initializeConfigManager } from './config/ConfigManager.js';
 
 
 // Configuration handler will be initialized in main function
@@ -564,10 +565,13 @@ async function main() {
     await server.connect(transport);
     log('main: Server connected successfully');
     
-    // Load configuration asynchronously after connection is established
+    // Initialize the config manager and load configuration asynchronously after connection is established
     // This prevents client timeouts during startup
     log('main: Starting async config initialization');
-    configHandler.initialize().then(() => {
+    Promise.all([
+      initializeConfigManager(),
+      configHandler.initialize()
+    ]).then(() => {
       log('main: Configuration loaded successfully');
     }).catch((error) => {
       logError('main: Configuration initialization failed', error);

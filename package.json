@@ -50,10 +50,10 @@
     "prepare": "npm run build",
     "clean": "rm -rf build",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js",
+    "config-ui": "cd node_modules/dj-config-mcp && node src/config-ui-server.js",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
-    "dj-config-mcp": "file:../mcp-config",
     "@modelcontextprotocol/sdk": "0.6.0",
     "@types/pg": "^8.15.4",
     "pg": "^8.16.3"

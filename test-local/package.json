@@ -1,0 +1,12 @@
+{
+  "name": "test-dj-postgres-mcp",
+  "version": "1.0.0",
+  "description": "Test project for dj-postgres-mcp",
+  "type": "module",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "@devjoy-digital/dj-postgres-mcp": "file:.."
+  }
+}

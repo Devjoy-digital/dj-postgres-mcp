@@ -7,9 +7,8 @@
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import { Client } from 'pg';
 import { log, logError } from '../utils/logger.js';
-// Import mcp-config utilities
-const configUtils = await import('dj-config-mcp/src/config-utils.js');
-const { isSensitiveKey, saveSecretToEnv, getConfigValue, saveNonSecretToConfig, getAllConfigKeys, distributeConfigToClients } = configUtils;
+// Import our custom config manager
+import { isSensitiveKey, saveSecretToEnv, getConfigValue, saveNonSecretToConfig, getAllConfigKeys, distributeConfigToClients } from '../config/ConfigManager.js';
 /**
  * McpConfigHandler class manages all configuration-related operations
  * using the mcp-config system
@@ -278,7 +277,7 @@ export class McpConfigHandler {
                 }
             }
             // Save password as sensitive data
-            saveSecretToEnv('POSTGRES_PASSWORD', password);
+            await saveSecretToEnv('POSTGRES_PASSWORD', password, global);
             // If clients are provided, save them
             if (clients && Array.isArray(clients)) {
                 const supportedClients = ['VS Code', 'Claude Code', 'Claude Desktop', 'Cursor'];
