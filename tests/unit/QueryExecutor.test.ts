@@ -1,6 +1,6 @@
 import { Client } from 'pg';
-import { QueryExecutor } from '../../features/database/QueryExecutor.js';
-import { ConfigHandler } from '../../handlers/ConfigHandler.js';
+import { QueryExecutor } from '../../src/features/database/QueryExecutor.js';
+import { ConfigHandler } from '../../src/handlers/ConfigHandler.js';
 
 // Real database integration test for QueryExecutor
 // Requires Docker PostgreSQL to be running on localhost:5432

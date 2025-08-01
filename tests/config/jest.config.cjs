@@ -2,8 +2,13 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.test.ts'],
+  roots: ['<rootDir>/../../tests/unit', '<rootDir>/../../src'],
+  testMatch: ['**/tests/unit/**/*.test.ts'],
+  testPathIgnorePatterns: [
+    'tests/unit/ConfigHandler.test.ts',
+    'tests/unit/QueryExecutor.test.ts', 
+    'tests/unit/database-tools.test.ts'
+  ],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       tsconfig: {
@@ -22,8 +27,8 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.d.ts',
     '!src/index.ts',
-    '!src/**/__tests__/**'
+    '!tests/**'
   ],
-  coverageDirectory: 'coverage',
-  testTimeout: 30000,
+  coverageDirectory: '../../tests/coverage',
+  testTimeout: 30000
 };

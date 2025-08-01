@@ -1,4 +1,4 @@
-import { ConfigHandler } from '../../handlers/ConfigHandler.js';
+import { ConfigHandler } from '../../src/handlers/ConfigHandler.js';
 
 // Real database integration test for ConfigHandler
 // Requires Docker PostgreSQL to be running on localhost:5432

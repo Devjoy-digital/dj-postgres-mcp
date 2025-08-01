@@ -1,4 +1,4 @@
-import { ManagedError, ErrorCodes } from '../../features/shared/errors.js';
+import { ManagedError, ErrorCodes } from '../../src/features/shared/errors.js';
 
 describe('ManagedError', () => {
   it('should create error with code and message', () => {

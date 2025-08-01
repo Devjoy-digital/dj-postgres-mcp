@@ -1,9 +1,9 @@
 import { Client } from 'pg';
-import { QueryExecutor } from '../../features/database/QueryExecutor.js';
-import { ConfigHandler } from '../../handlers/ConfigHandler.js';
-import { handleExecuteQuery } from '../../features/database/tools/execute-query.js';
-import { handleListTables } from '../../features/database/tools/list-tables.js';
-import { handleDescribeTable } from '../../features/database/tools/describe-table.js';
+import { QueryExecutor } from '../../src/features/database/QueryExecutor.js';
+import { ConfigHandler } from '../../src/handlers/ConfigHandler.js';
+import { handleExecuteQuery } from '../../src/features/database/tools/execute-query.js';
+import { handleListTables } from '../../src/features/database/tools/list-tables.js';
+import { handleDescribeTable } from '../../src/features/database/tools/describe-table.js';
 
 // Real database integration test for database tools
 // Requires Docker PostgreSQL to be running on localhost:5432

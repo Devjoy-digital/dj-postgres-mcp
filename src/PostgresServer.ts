@@ -68,7 +68,7 @@ export class PostgresServer {
 
       try {
         // Check if it's a configuration tool first
-        const configTools = ['configure_connection', 'get_connection_info', 'test_connection'];
+        const configTools = ['configure_connection', 'get_connection_info', 'test_connection', 'list_available_clients'];
         if (configTools.includes(name)) {
           return await this.configHandler.handleToolCall(name, args);
         }

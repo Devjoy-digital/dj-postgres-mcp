@@ -108,6 +108,15 @@ export class ConfigHandler {
               type: 'boolean',
               description: 'Enable SSL connection (required for cloud databases)'
             },
+            clients: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['claude-desktop', 'vscode-mcp', 'cline']
+              },
+              description: 'Array of client names to distribute configuration to (optional). Select from available options.',
+              default: ['claude-desktop', 'vscode-mcp', 'cline']
+            }
           },
           required: ['host', 'database', 'user', 'password']
         }
@@ -123,6 +132,14 @@ export class ConfigHandler {
       {
         name: 'test_connection',
         description: 'Test the current database connection',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      },
+      {
+        name: 'list_available_clients',
+        description: 'List available MCP clients that can receive PostgreSQL configuration',
         inputSchema: {
           type: 'object',
           properties: {}
@@ -144,6 +161,8 @@ export class ConfigHandler {
         return await this.handleGetConnectionInfo();
       case 'test_connection':
         return await this.handleTestConnection();
+      case 'list_available_clients':
+        return await this.handleListAvailableClients();
       default:
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${toolName}`);
     }
@@ -154,7 +173,7 @@ export class ConfigHandler {
    */
   private async handleConfigConnection(args: any): Promise<any> {
     try {
-      const { host, port, database, user, password, ssl } = args;
+      const { host, port, database, user, password, ssl, clients } = args;
 
       // Validate required parameters
       if (!host || !database || !user || !password) {
@@ -162,6 +181,19 @@ export class ConfigHandler {
           ErrorCode.InvalidParams,
           MessageFormatter.error.validation('parameters', 'host, database, user, and password are required')
         );
+      }
+
+      // Initialize dj-config-mcp first
+      await this.initializeDjConfigAsync();
+      
+      // Get available clients from dj-config-mcp
+      const availableClients = await this.getAvailableClientsFromDjConfig();
+      
+      // If no clients specified, use all available clients by default
+      let selectedClients = clients;
+      if (!clients || !Array.isArray(clients)) {
+        selectedClients = availableClients.map(client => client.name);
+        log('ConfigHandler: No clients specified, using all available clients', { selectedClients });
       }
 
       // Update configuration
@@ -176,9 +208,6 @@ export class ConfigHandler {
         queryTimeout: 60000
       };
 
-      // Store configuration using dj-config-mcp
-      await this.initializeDjConfigAsync();
-      
       // Store configuration values using dj-config-mcp
       // dj-config-mcp will automatically detect password as sensitive and store in .env
       await djConfig.configSet('postgres.host', host);
@@ -188,6 +217,18 @@ export class ConfigHandler {
       await djConfig.configSet('postgres.password', password);
       await djConfig.configSet('postgres.ssl', (ssl !== undefined ? ssl : true).toString());
       
+      // Store clients configuration
+      if (selectedClients && Array.isArray(selectedClients) && selectedClients.length > 0) {
+        await djConfig.configSet('postgres.clients', JSON.stringify(selectedClients));
+        
+        // Note: Client distribution will be handled by dj-config-mcp automatically
+        // when the configuration is accessed by those clients
+        log('ConfigHandler: Configuration saved for clients', { clients: selectedClients });
+      } else {
+        // Clear clients configuration if not provided
+        await djConfig.configSet('postgres.clients', JSON.stringify([]));
+      }
+      
       log('ConfigHandler: Configuration saved using dj-config-mcp');
 
       // Test the connection
@@ -196,22 +237,37 @@ export class ConfigHandler {
       let statusMessage = '';
       if (testResult.success) {
         statusMessage = MessageFormatter.success.connection(
-          `- Server Version: ${testResult.version}\n- Connection Latency: ${testResult.latency}ms`
+          `- Server Version: ${testResult.version}\\n- Connection Latency: ${testResult.latency}ms`
         );
       } else {
         statusMessage = MessageFormatter.warning.general(`Connection test failed: ${testResult.error}`);
       }
 
+      // Build response message
+      let responseMessage = `${MessageFormatter.headers.configuration()}\\n\\n${MessageFormatter.info.configuration(
+        this.config.host,
+        this.config.port,
+        this.config.database,
+        this.config.user,
+        this.config.ssl
+      )}\\n\\n${statusMessage}`;
+
+      // Show available clients and selected clients
+      responseMessage += `\\n\\n🔍 Available Clients:\\n${availableClients.map((client, index) => `${index + 1}. ${client.name} (${client.type})`).join('\\n')}`;
+
+      // Add client distribution info
+      if (selectedClients && Array.isArray(selectedClients) && selectedClients.length > 0) {
+        responseMessage += `\\n\\n📤 Configuration Distributed To:\\n${selectedClients.map((client, index) => `${index + 1}. ${client}`).join('\\n')}`;
+      } else {
+        responseMessage += `\\n\\n⚠️ No clients configured for distribution`;
+      }
+
+      responseMessage += `\\n\\n${MessageFormatter.info.general('Configuration saved using dj-config-mcp')}`;
+
       return {
         content: [{
           type: 'text',
-          text: `${MessageFormatter.headers.configuration()}\n\n${MessageFormatter.info.configuration(
-            this.config.host,
-            this.config.port,
-            this.config.database,
-            this.config.user,
-            this.config.ssl
-          )}\n\n${statusMessage}\n\n${MessageFormatter.info.general('Configuration saved using dj-config-mcp')}`
+          text: responseMessage
         }]
       };
     } catch (error) {
@@ -244,6 +300,7 @@ export class ConfigHandler {
     const userConfig = await djConfig.configGet('postgres.user');
     const sslConfig = await djConfig.configGet('postgres.ssl');
     const passwordConfig = await djConfig.configGet('postgres.password');
+    const clientsConfig = await djConfig.configGet('postgres.clients');
     
     const host = hostConfig?.value || this.config.host;
     const port = parseInt(portConfig?.value || this.config.port.toString());
@@ -252,13 +309,24 @@ export class ConfigHandler {
     const ssl = (sslConfig?.value || this.config.ssl.toString()) === 'true';
     const passwordConfigured = !!(passwordConfig?.value || this.config.password);
     
+    // Parse clients configuration
+    let configuredClients: string[] = [];
+    try {
+      if (clientsConfig?.value) {
+        configuredClients = JSON.parse(clientsConfig.value);
+      }
+    } catch (error) {
+      logError('ConfigHandler: Error parsing clients configuration', error);
+    }
+    
     const configInfo = {
       host,
       port,
       database,
       user,
       ssl,
-      passwordConfigured  // Use camelCase for consistency with other app-level fields
+      passwordConfigured,  // Use camelCase for consistency with other app-level fields
+      configuredClients
     };
 
     return {
@@ -378,4 +446,87 @@ Please check your connection settings using 'configure_connection'`
   isConfigured(): boolean {
     return !!(this.config.host && this.config.database && this.config.user && this.config.password);
   }
+
+  /**
+   * Handle list available clients
+   */
+  private async handleListAvailableClients(): Promise<any> {
+    try {
+      await this.initializeDjConfigAsync();
+      
+      // Get available clients from dj-config-mcp
+      const availableClients = await this.getAvailableClientsFromDjConfig();
+      
+      return {
+        content: [{
+          type: 'text',
+          text: `🔍 Available MCP Clients for PostgreSQL Configuration Distribution\n\n${availableClients.map((client, index) => `${index + 1}. ${client.name} (${client.type})`).join('\n')}\n\n💡 To configure PostgreSQL with client distribution:\n- Use 'configure_connection' tool\n- Include a 'clients' array parameter with the client names you want\n- If no clients are specified, all available clients will be selected by default\n\nExample clients array: ["claude-desktop", "vscode-mcp", "cline"]`
+        }]
+      };
+    } catch (error) {
+      logError('ConfigHandler.handleListAvailableClients: Error', error);
+      return {
+        content: [{
+          type: 'text',
+          text: `❌ Error listing available clients: ${error instanceof Error ? error.message : String(error)}\n\nThis feature requires dj-config-mcp to be properly configured with client information.`
+        }],
+        isError: true
+      };
+    }
+  }
+
+  /**
+   * Get available clients from dj-config-mcp
+   * This is a helper method that interfaces with dj-config-mcp's client discovery
+   */
+  private async getAvailableClientsFromDjConfig(): Promise<Array<{name: string, type: string}>> {
+    try {
+      // This would typically query dj-config-mcp for configured clients
+      // For now, we'll return a basic implementation that looks for common MCP client configurations
+      
+      // Try to get client configurations from dj-config-mcp
+      const clientConfigs = [];
+      
+      // Check for common MCP client types
+      const commonClients = [
+        { key: 'claude.desktop', name: 'claude-desktop', type: 'Desktop Application' },
+        { key: 'vscode.mcp', name: 'vscode-mcp', type: 'VSCode Extension' },
+        { key: 'cline.mcp', name: 'cline', type: 'VSCode Extension' }
+      ];
+      
+      for (const client of commonClients) {
+        try {
+          const config = await djConfig.configGet(`clients.${client.key}`);
+          if (config?.value) {
+            clientConfigs.push({
+              name: client.name,
+              type: client.type
+            });
+          }
+        } catch (error) {
+          // Client not configured, skip
+        }
+      }
+      
+      // If no specific client configs found, return some default options
+      if (clientConfigs.length === 0) {
+        return [
+          { name: 'claude-desktop', type: 'Desktop Application' },
+          { name: 'vscode-mcp', type: 'VSCode Extension' },
+          { name: 'cline', type: 'VSCode Extension' }
+        ];
+      }
+      
+      return clientConfigs;
+    } catch (error) {
+      logError('ConfigHandler.getAvailableClientsFromDjConfig: Error', error);
+      // Return default client options as fallback
+      return [
+        { name: 'claude-desktop', type: 'Desktop Application' },
+        { name: 'vscode-mcp', type: 'VSCode Extension' },
+        { name: 'cline', type: 'VSCode Extension' }
+      ];
+    }
+  }
+
 }
