@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(git add:*)",
@@ -15,7 +16,23 @@
       "Bash(npm run inspector:*)",
       "Bash(node:*)",
       "Bash(ls:*)",
-      "Bash(npm search:*)"
+      "Bash(npm search:*)",
+      "Bash(mv:*)",
+      "Bash(tree:*)",
+      "Bash(npm publish:*)",
+      "Bash(npm run test:unit:*)",
+      "Bash(docker-compose:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx @modelcontextprotocol/inspector build/index.js)",
+      "Bash(npm run test:setup:*)",
+      "Bash(npm run test:integration:*)",
+      "Bash(cat:*)",
+      "Bash(docker exec:*)",
+      "Bash(find:*)",
+      "Bash(npm run test:basic:*)",
+      "Bash(npm run test:docker:down:*)",
+      "Bash(npm pack:*)",
+      "Bash(npm run clean:*)"
     ],
     "deny": []
   }
