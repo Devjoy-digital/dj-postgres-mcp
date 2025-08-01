@@ -1,0 +1,74 @@
+# Source files (only ship built files)
+src/
+*.ts
+!*.d.ts
+
+# Development and configuration files
+.env
+.env.*
+*.log
+.DS_Store
+node_modules/
+.vscode/
+.idea/
+.cursor/
+.agents/
+
+# Test files and artifacts
+test/
+tests/
+test-local/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+test-*.js
+run-integration-tests.js
+jest.config.cjs
+docker-compose.test.yml
+TEST_RESULTS.md
+demo-*.md
+
+# Test files in build directory
+build/**/*.test.js
+build/**/*.spec.js
+build/__tests__/
+build/test/
+
+# Build artifacts we don't ship
+*.map
+tsconfig.json
+.eslintrc*
+.prettierrc*
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Development scripts and specs
+scripts/
+PRD.md
+tech-spec.md
+TESTING.md
+
+# dj-config-mcp generated files
+devjoy-digital/
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Temporary and system files
+tmp/
+temp/
+nul
+Thumbs.db
+
+# Keep only these documentation files:
+# README.md (included)
+# LICENSE (included) 
+# CHANGELOG.md (included)
+# API.md (included)
+# QUICK_START.md (included)

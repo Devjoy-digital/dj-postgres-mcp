@@ -1,43 +1,55 @@
 # PostgreSQL MCP Server
 
-A Model Context Protocol (MCP) server for PostgreSQL database operations with flexible configuration management using the @devjoy-digital/mcp-config system.
+A Model Context Protocol (MCP) server for PostgreSQL database operations with centralized configuration management via dj-config-mcp.
 
 ## Features
 
 - **Database Operations**: Execute SQL queries, describe tables, and list database schemas
-- **Flexible Configuration**: Uses the shared @devjoy-digital/mcp-config system for consistent configuration management
-- **Multiple Connection Methods**: Support for local and cloud PostgreSQL instances
-- **Security**: Sensitive data (passwords) stored in environment variables
-- **Client Integration**: Automatic configuration distribution to supported AI clients
+- **Centralized Configuration**: All configuration managed by dj-config-mcp for consistency across MCP servers
+- **Secure Password Storage**: Passwords automatically stored in `.env` files by dj-config-mcp
+- **Comprehensive Testing**: Integration tests run against real PostgreSQL in Docker
+- **Production Ready**: Handles parameterized queries, transactions, and complex data types
+- **Cloud & Local Support**: Works with local PostgreSQL, Azure Database, AWS RDS, and more
 
 ## Installation
 
 ```bash
-npm install -g @devjoy-digital/dj-postgres-mcp
+npm install -g dj-postgres-mcp
 ```
 
 ## Configuration
 
-This server uses the @devjoy-digital/mcp-config system for configuration management. You have several options:
+This server delegates all configuration management to [dj-config-mcp](https://github.com/devjoy-digital/dj-config-mcp), ensuring consistent configuration across all MCP servers in your environment.
 
-### Option 1: Interactive Setup (Recommended)
+### Initial Setup
 
-Use the `config_connection_interactive` tool to run the interactive configuration process:
-
+1. Install dj-config-mcp if not already installed:
 ```bash
-# This will guide you through setting up all configuration options
-# including database connection details and client selection
+npm install -g dj-config-mcp
 ```
 
-### Option 2: Manual Configuration
+2. Configure your PostgreSQL connection using the MCP tools:
 
-You can configure the server using individual tools:
+```javascript
+// Configure the connection
+await use_mcp_tool('dj-postgres-mcp', 'configure_connection', {
+  host: 'localhost',
+  port: 5432,
+  database: 'mydb',
+  user: 'postgres',
+  password: 'mypassword',
+  ssl: true
+});
+```
 
-1. **config_connection**: Set up database connection parameters
-2. **update_configuration**: Update specific configuration values
-3. **get_connection_info**: View current configuration
+The configuration is automatically managed by dj-config-mcp:
+- Passwords are stored securely in `.env` files
+- Non-sensitive settings are stored in configuration files
+- All configuration can be distributed to MCP clients
 
-### Option 3: Environment Variables
+### Environment Variables
+
+You can also configure the server using environment variables
 
 Set environment variables directly:
 
@@ -50,36 +62,24 @@ export POSTGRES_PASSWORD=mypassword
 export POSTGRES_SSL=true
 ```
 
-### Option 4: Configuration File
+### Viewing Configuration
 
-Create a `config/default.json` file:
+To check your current database configuration:
 
-```json
-{
-  "postgres": {
-    "host": "localhost",
-    "port": 5432,
-    "database": "mydb",
-    "user": "myuser",
-    "ssl": true,
-    "connectionTimeout": 30000,
-    "queryTimeout": 60000,
-    "maxConnections": 10,
-    "autoRetry": true
-  }
-}
+```javascript
+// Get current connection settings
+await use_mcp_tool('dj-postgres-mcp', 'get_connection_info', {});
+
+// Test the connection
+await use_mcp_tool('dj-postgres-mcp', 'test_connection', {});
 ```
-
-**Note**: Sensitive data like passwords should be stored in environment variables, not in configuration files.
 
 ## Available Tools
 
 ### Configuration Tools
 
-- **config_connection**: Configure database connection settings using mcp-config system
+- **configure_connection**: Configure database connection settings
 - **get_connection_info**: Get current database connection configuration
-- **config_connection_interactive**: Run the interactive mcp-config setup process
-- **update_configuration**: Update specific configuration settings using mcp-config
 - **test_connection**: Test the database connection with current settings
 
 ### Database Tools
@@ -88,27 +88,30 @@ Create a `config/default.json` file:
 - **describe_table**: Get detailed information about a table structure
 - **list_tables**: List all tables in the database or a specific schema
 
-## Available Resources
-
-- **postgres://database/overview**: Overview of database schemas and tables
-- **postgres://schema/{schema_name}**: Tables and views in a specific schema
 
 ## Usage Examples
 
 ### Setting up the connection
 
 ```javascript
-// Use the interactive setup
-await callTool('config_connection_interactive', {});
-
-// Or configure manually
-await callTool('config_connection', {
+// Configure a local PostgreSQL connection
+await use_mcp_tool('dj-postgres-mcp', 'configure_connection', {
   host: 'localhost',
   port: 5432,
   database: 'myapp',
   user: 'postgres',
   password: 'mypassword',
-  ssl: true
+  ssl: false
+});
+
+// Configure Azure Database for PostgreSQL
+await use_mcp_tool('dj-postgres-mcp', 'configure_connection', {
+  host: 'myserver.postgres.database.azure.com',
+  port: 5432,
+  database: 'myapp',
+  user: 'myuser@myserver',
+  password: 'mypassword',
+  ssl: true  // Required for Azure
 });
 ```
 
@@ -116,14 +119,34 @@ await callTool('config_connection', {
 
 ```javascript
 // Execute a simple query
-await callTool('execute_query', {
+await use_mcp_tool('dj-postgres-mcp', 'execute_query', {
   query: 'SELECT * FROM users LIMIT 10'
 });
 
-// Execute a parameterized query
-await callTool('execute_query', {
-  query: 'SELECT * FROM users WHERE age > $1',
-  params: [25]
+// Execute a parameterized query (prevents SQL injection)
+await use_mcp_tool('dj-postgres-mcp', 'execute_query', {
+  query: 'SELECT * FROM users WHERE age > $1 AND city = $2',
+  params: [25, 'New York']
+});
+
+// Execute DDL statements
+await use_mcp_tool('dj-postgres-mcp', 'execute_query', {
+  query: `CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2),
+    metadata JSONB
+  )`
+});
+
+// Execute transactions
+await use_mcp_tool('dj-postgres-mcp', 'execute_query', {
+  query: `
+    BEGIN;
+    UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+    UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+    COMMIT;
+  `
 });
 ```
 
@@ -131,67 +154,85 @@ await callTool('execute_query', {
 
 ```javascript
 // Describe a table structure
-await callTool('describe_table', {
-  schema: 'public',
-  table: 'users'
+await use_mcp_tool('dj-postgres-mcp', 'describe_table', {
+  table: 'users',
+  schema: 'public'  // optional, defaults to 'public'
 });
 
-// List all tables
-await callTool('list_tables', {});
+// List all tables in all schemas
+await use_mcp_tool('dj-postgres-mcp', 'list_tables', {});
 
 // List tables in a specific schema
-await callTool('list_tables', {
+await use_mcp_tool('dj-postgres-mcp', 'list_tables', {
   schema: 'public'
 });
 ```
 
-## Configuration Schema
+## Configuration Storage
 
-The server uses a structured configuration schema defined in `template-config.json`:
+The server stores configuration using dj-config-mcp with the following structure:
 
-```json
-{
-  "postgres": {
-    "properties": {
-      "host": { "doc": "Database host", "default": "localhost" },
-      "port": { "doc": "Database port", "default": 5432 },
-      "database": { "doc": "Database name", "default": "postgres" },
-      "user": { "doc": "Database username", "default": "postgres" },
-      "password": { "doc": "Database password", "sensitive": true },
-      "ssl": { "doc": "Enable SSL connection", "default": true },
-      "connectionTimeout": { "doc": "Connection timeout in ms", "default": 30000 },
-      "queryTimeout": { "doc": "Query timeout in ms", "default": 60000 },
-      "maxConnections": { "doc": "Max concurrent connections", "default": 10 },
-      "autoRetry": { "doc": "Auto retry failed connections", "default": true }
-    }
-  }
-}
-```
+- `postgres.host`: Database host
+- `postgres.port`: Database port  
+- `postgres.database`: Database name
+- `postgres.user`: Database username
+- `postgres.password`: Database password (automatically stored in .env)
+- `postgres.ssl`: Enable SSL connection
 
-## Client Integration
+Sensitive data like passwords are automatically detected by dj-config-mcp and stored securely in environment variables.
 
-The mcp-config system automatically distributes configuration to supported AI clients:
+## Architecture
 
-- VS Code
-- Claude Desktop
-- Claude Code
-- Cursor
+This server follows a clean separation of concerns:
 
-Configuration files are created in the appropriate directories for each client.
+- **Configuration Management**: Fully delegated to dj-config-mcp
+- **Database Operations**: Handled by QueryExecutor with comprehensive PostgreSQL type support
+- **Error Handling**: Structured error responses with proper MCP error codes
+- **Testing**: Integration tests validate all database operations
+
+### No Direct Client Management
+
+Unlike standalone MCP servers, dj-postgres-mcp does not manage client configurations directly. All client configuration is handled by dj-config-mcp, ensuring:
+
+- Single source of truth for all MCP configurations
+- Consistent configuration across multiple MCP servers
+- Simplified deployment and maintenance
 
 ## Security Considerations
 
 - **Passwords**: Always stored in environment variables (`.env` file)
 - **SSL**: Enabled by default for secure connections
-- **Configuration Files**: Non-sensitive settings stored in `config/default.json`
+- **Configuration Files**: Non-sensitive settings stored via dj-config-mcp
 - **Git Ignore**: Ensure `.env` and sensitive config files are in `.gitignore`
+
+## Testing
+
+The project includes comprehensive integration tests that run against a real PostgreSQL database in Docker.
+
+### Running Tests
+
+```bash
+# Start PostgreSQL test container
+npm run test:setup
+
+# Run integration tests
+npm run test:integration
+
+# Run all tests
+npm test
+
+# Stop test container
+npm run test:docker:down
+```
+
+See [TESTING.md](./TESTING.md) for detailed testing documentation.
 
 ## Development
 
 ```bash
 # Clone the repository
-git clone https://github.com/devjoy-digital/postgres-mcp-server.git
-cd postgres-mcp-server
+git clone https://github.com/devjoy-digital/dj-postgres-mcp.git
+cd dj-postgres-mcp
 
 # Install dependencies
 npm install
@@ -201,6 +242,9 @@ npm run build
 
 # Run in development mode
 npm run dev
+
+# Use MCP Inspector for testing
+npm run inspector
 ```
 
 ## License
@@ -214,5 +258,13 @@ Contributions are welcome! Please read the contributing guidelines and submit pu
 ## Support
 
 For issues and questions:
-- GitHub Issues: https://github.com/devjoy-digital/postgres-mcp-server/issues
-- Documentation: https://github.com/devjoy-digital/postgres-mcp-server#readme
+- GitHub Issues: https://github.com/devjoy-digital/dj-postgres-mcp/issues
+- Documentation: https://github.com/devjoy-digital/dj-postgres-mcp#readme
+
+## Buy Me a Coffee
+
+If you find this MCP server useful, consider supporting its development:
+
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/devjoydigital)
+
+Your support helps maintain and improve this project!

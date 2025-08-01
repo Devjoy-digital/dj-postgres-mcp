@@ -48,5 +48,17 @@ temp/
 config.json
 !template-config.json
 
+# dj-config-mcp generated files
+devjoy-digital/
+
+# Test artifacts
+test-*.js
+demo-*.md
+TEST_RESULTS.md
+
+# Development and specification files
+PRD.md
+tech-spec.md
+
 # Null file (Windows artifact)
 nul

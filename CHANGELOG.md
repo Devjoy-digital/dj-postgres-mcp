@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2025-08-01
+
+### Added
+- **Comprehensive Testing Suite**: Integration tests that run against real PostgreSQL in Docker
+- **Custom Test Runner**: Node.js-based integration test runner to bypass Jest/ESM compatibility issues
+- **Docker Test Environment**: PostgreSQL 14 Alpine container for consistent testing
+- **GitHub Actions CI/CD**: Automated testing and npm publishing on version changes
+- **Test Documentation**: Detailed TESTING.md guide for running and understanding tests
+
+### Fixed
+- **Configuration Value Extraction**: Fixed bug where dj-config-mcp returns objects instead of raw values
+- **Password Storage**: Ensures passwords are properly stored in .env files by dj-config-mcp
+- **Error Messages**: Improved error handling to show actual error messages instead of empty strings
+
+### Changed
+- **Architecture Refactoring**: Complete removal of path management and client configuration code
+- **Configuration Delegation**: All configuration now fully managed by dj-config-mcp
+- **Removed Dead Code**: Eliminated ConnectionManager, SessionManager, and related features
+- **Improved Type Support**: Expanded PostgreSQL data type mappings from 13 to 40+ types
+
+### Technical
+- Fixed fragile primary key detection in describeTable method
+- Added proper value extraction from dj-config-mcp response objects
+- Updated npm scripts for better test execution flow
+- Added Docker management commands for test environment
+
+## [0.9.0] - 2025-01-31
+
+### Changed
+- **Package Name**: Changed from scoped package `@devjoy-digital/dj-postgres-mcp` to unqualified package `dj-postgres-mcp`
+- **Publishing**: Package is now published as an unqualified npm package for easier installation
+- **Installation**: Updated installation command to `npm install -g dj-postgres-mcp`
+
+### Migration
+- Uninstall the old scoped package: `npm uninstall -g @devjoy-digital/dj-postgres-mcp`
+- Install the new unqualified package: `npm install -g dj-postgres-mcp`
+- All functionality remains the same, only the package name has changed
+
 ## [1.0.0] - 2025-01-28
 
 ### Added
